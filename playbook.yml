@@ -1,0 +1,25 @@
+---
+
+- hosts: database
+  remote_user: ubuntu
+  become: yes
+  become_method: sudo
+  become_user: root
+  gather_facts: yes
+  connection: ssh
+  vars_files:
+    - vars/main.yml
+  roles: 
+    - commons
+    - postgres
+
+- hosts: dockers
+  remote_user: ubuntu
+  become: yes
+  become_method: sudo
+  become_user: root
+  gather_facts: yes
+  connection: ssh
+  roles:
+    - commons
+    - docker
