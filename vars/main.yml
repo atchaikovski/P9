@@ -1,3 +1,4 @@
 db_user: produser
 db_password: Pasw0rd1
 db_name: proddb
+postgresql_version: 13

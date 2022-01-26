@@ -1,31 +1,57 @@
-- name: "Install packages"
-  dnf: "name={{ item }} state=present"
-  with_items:
-    - postgresql
-    - postgresql-server
+---
 
-- name: "Install Python packages"
-  yum: "name={{ item }}  state=present"
-  with_items:
-    - python3-psycopg2
+- debug: msg="play_hosts={{play_hosts}}"
+- debug: msg="ansible_distribution={{ansible_distribution}}"
 
+- name: postgresql key
+  apt_key:
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    state: present
+  become: true
+    
+- name: create variable
+  command: bash -c "echo \"deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main\" "
+  register: repo_line
+
+- debug: 
+    msg: "{{ repo_line.stdout }}"
+      
+- name: add postgresql repo 
+  apt_repository:
+    repo: "{{ repo_line.stdout }}"
+    state: present
+  become: true
+
+- name: install postgresql
+  apt:
+    name: "postgresql-{{postgresql_version}}"
+    state: present
+    update_cache: yes
+  become: true
+
+- name: create a Data directory for Postgresql
+  ansible.builtin.file:
+    path: /var/data
+    state: directory
+    mode: '0755'
+    owner: postgres
+    group: postgres
+  
 - name: "Find out if PostgreSQL is initialized"
   ansible.builtin.stat:
     path: "/var/lib/pgsql/data/pg_hba.conf"
   register: postgres_data
 
 - name: "Initialize PostgreSQL"
-  shell: "postgresql-setup initdb"
+  shell: "/usr/lib/postgresql/13/bin/initdb -D /var/data"
   when: not postgres_data.stat.exists
+  become: true
+  become_user: postgres
 
 - name: "Start and enable services"
   service: "name={{ item }} state=started enabled=yes"
   with_items:
     - postgresql
-
-handlers:
-  - name: restart postgres
-    service: name=postgresql state=restarted
 
 - name: "Create app database"
   postgresql_db:
