@@ -1,91 +1,24 @@
 ---
+# Variable configuration.
+- include_tasks: variables.yml
 
-- debug: msg="play_hosts={{play_hosts}}"
-- debug: msg="ansible_distribution={{ansible_distribution}}"
+# Setup/install tasks.
+- include_tasks: setup-RedHat.yml
+  when: ansible_os_family == 'RedHat'
 
-- name: postgresql key
-  apt_key:
-    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
-    state: present
-  become: true
-    
-- name: create variable
-  command: bash -c "echo \"deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main\" "
-  register: repo_line
+- include_tasks: setup-Debian.yml
+  when: ansible_os_family == 'Debian'
 
-- debug: 
-    msg: "{{ repo_line.stdout }}"
-      
-- name: add postgresql repo 
-  apt_repository:
-    repo: "{{ repo_line.stdout }}"
-    state: present
-  become: true
+- include_tasks: initialize.yml
+- include_tasks: configure.yml
 
-- name: install postgresql
-  apt:
-    name: "postgresql-{{postgresql_version}}"
-    state: present
-    update_cache: yes
-  become: true
+- name: Ensure PostgreSQL is started and enabled on boot.
+  service:
+    name: "{{ postgresql_daemon }}"
+    state: "{{ postgresql_service_state }}"
+    enabled: "{{ postgresql_service_enabled }}"
 
-- name: create a Data directory for Postgresql
-  ansible.builtin.file:
-    path: /var/data
-    state: directory
-    mode: '0755'
-    owner: postgres
-    group: postgres
-  
-- name: "Find out if PostgreSQL is initialized"
-  ansible.builtin.stat:
-    path: "/var/lib/pgsql/data/pg_hba.conf"
-  register: postgres_data
-
-- name: "Initialize PostgreSQL"
-  shell: "/usr/lib/postgresql/13/bin/initdb -D /var/data"
-  when: not postgres_data.stat.exists
-  become: true
-  become_user: postgres
-
-- name: "Start and enable services"
-  service: "name={{ item }} state=started enabled=yes"
-  with_items:
-    - postgresql
-
-- name: "Create app database"
-  postgresql_db:
-    state: present
-    name: "{{ db_name }}"
-  become: yes
-  become_user: postgres
-
-- name: "Create db user"
-  postgresql_user:
-    state: present
-    name: "{{ db_user }}"
-    password: "{{ db_password }}"
-  become: yes
-  become_user: postgres
-
-- name: "Grant db user access to app db"
-  postgresql_privs:
-    type: database
-    database: "{{ db_name }}"
-    roles: "{{ db_user }}"
-    grant_option: no
-    privs: all
-  become: yes
-  become_user: postgres
-
-- name: "Allow md5 connection for the db user"
-  postgresql_pg_hba:
-    dest: "~/data/pg_hba.conf"
-    contype: host
-    databases: all
-    method: md5
-    users: "{{ db_user }}"
-    create: true
-  become: yes
-  become_user: postgres
-  notify: restart postgres
+# Configure PostgreSQL.
+- import_tasks: users.yml
+- import_tasks: databases.yml
+- import_tasks: users_props.yml
