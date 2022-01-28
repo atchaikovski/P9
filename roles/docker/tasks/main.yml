@@ -29,3 +29,25 @@
     state: started
     enabled: yes
   register: started_docker
+
+- name: add {{ remote_user }} to docker group
+  user: 
+    name: {{ remote_user }}
+    groups: docker
+    append: yes
+
+- name: copy app files to docker VM
+  copy: 
+    src: {{ item }}
+    dest: /home/{{ remote_user }}/
+    owner: {{ remote_user }}
+    group: {{ remote_user }}
+    mode: 0644
+  with_fileglob:
+    - "../../app/*"
+
+- name: build a container
+  shell: "docker build -t app ."
+
+- name: run a container
+  shell: "docker run -d -p 8080:80 --rm --name app app"

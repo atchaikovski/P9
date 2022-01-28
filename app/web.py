@@ -2,7 +2,6 @@ from psycopg2 import connect
 from flask import Flask
 from configparser import ConfigParser
 
-
 app = Flask(__name__)
 
 def get_db_config(db_option):
@@ -15,7 +14,6 @@ def get_db_config(db_option):
                 exit ()
         return result
 
-
 def get_db_time():
         conn = connect("host= {0} dbname={1} user={2} password={3}".format(get_db_config('db_host'), get_db_config('db_name'), get_db_config('db_user'), get_
 db_config('db_password')))
@@ -24,14 +22,10 @@ db_config('db_password')))
         cur.execute('SELECT current_user;;')
         return cur.fetchone()
 
-
 text = """<h1 style='color:blue'>Hello there!</h1>
 Everything is OK! DB Query was completed by {} user""".format(get_db_time()[0])
 
-
-
 @app.route("/")
-
 
 def hello():
     return text

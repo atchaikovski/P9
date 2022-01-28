@@ -38,32 +38,32 @@ postgresql_locales:
 
 # Databases to ensure exist.
 postgresql_databases: []
- - name: proddb # required; the rest are optional
+#  - name: proddb # required; the rest are optional
 #   lc_collate: # defaults to 'en_US.UTF-8'
 #   lc_ctype: # defaults to 'en_US.UTF-8'
 #   encoding: # defaults to 'UTF-8'
 #   template: # defaults to 'template0'
 #   login_host: # defaults to 'localhost'
-   login_password: P@sw0rd1 # defaults to not set
-   login_user: postgres # defaults to '{{ postgresql_user }}'
+#    login_password: P@sw0rd1 # defaults to not set
+#    login_user: postgres # defaults to '{{ postgresql_user }}'
 #   login_unix_socket: # defaults to 1st of postgresql_unix_socket_directories
-   port: 5432 # defaults to not set
+#    port: 5432 # defaults to not set
 #   owner: # defaults to postgresql_user
 #   state: # defaults to 'present'
 
 # Users to ensure exist.
 postgresql_users: []
- - name: prod #required; the rest are optional
-   password: P@sw0rd1 # defaults to not set
+#  - name: prod #required; the rest are optional
+#    password: P@sw0rd1 # defaults to not set
 #   encrypted: # defaults to not set
 #   priv: # defaults to not set
 #   role_attr_flags: # defaults to not set
-   db: proddb # defaults to not set
+#    db: proddb # defaults to not set
 #   login_host: # defaults to 'localhost'
 #   login_password: # defaults to not set
 #   login_user: # defaults to '{{ postgresql_user }}'
 #   login_unix_socket: # defaults to 1st of postgresql_unix_socket_directories
-   port: 5432 # defaults to not set
+#    port: 5432 # defaults to not set
 #   state: # defaults to 'present'
 
 # Whether to output user data when managing users.
