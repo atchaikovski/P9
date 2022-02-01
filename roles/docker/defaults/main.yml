@@ -1,3 +1,4 @@
 ---
 
 docker_version: ""
+docker_user: "ubuntu"

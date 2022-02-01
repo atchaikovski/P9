@@ -1,5 +1,5 @@
 [database]
-db_host = 'database'
+db_host = '{{ groups['databases'][0] }}'
 db_port = '5432'
 db_user = 'produser'
 db_password = 'P@sw0rd1'

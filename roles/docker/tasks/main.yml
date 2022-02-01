@@ -30,18 +30,26 @@
     enabled: yes
   register: started_docker
 
-- name: add {{ remote_user }} to docker group
+- name: add {{ docker_user }} to docker group
   user: 
-    name: {{ remote_user }}
+    name: "{{ docker_user }}"
     groups: docker
     append: yes
 
+- name: copy config file of the app
+  template:
+    src: "web.conf.j2"
+    dest: /home/{{ docker_user }}/web.conf
+    owner: "{{ docker_user }}"
+    group: "{{ docker_user }}"
+    mode: 0644
+  
 - name: copy app files to docker VM
   copy: 
-    src: {{ item }}
-    dest: /home/{{ remote_user }}/
-    owner: {{ remote_user }}
-    group: {{ remote_user }}
+    src: "{{ item }}"
+    dest: /home/{{ docker_user }}/
+    owner: "{{ docker_user }}"
+    group: "{{ docker_user }}"
     mode: 0644
   with_fileglob:
     - "../../app/*"
@@ -50,4 +58,4 @@
   shell: "docker build -t app ."
 
 - name: run a container
-  shell: "docker run -d -p 8080:80 --rm --name app app"
+  shell: "docker run -d -p 8080:80 --rm --name webapp app"
