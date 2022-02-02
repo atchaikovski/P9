@@ -1,7 +1,7 @@
 ---
 
-- name: Install nginx 
-  include_tasks: nginx.yml
+#- name: Install nginx 
+#  include_tasks: nginx.yml
   
 - name: Install Docker container engine
   include_tasks: pkg.yml
@@ -40,13 +40,22 @@
     groups: docker
     append: yes
 
-- name: set_fact | figure out network device of private network
+- name: set_fact | figure out network device of public network
   set_fact:
-    docker_interface: "{{ hostvars[groups['databases'][0]]['ansible_host'] }}"
+    docker_public_interface: "{{ hostvars[groups['dockers'][0]]['ansible_host'] }}"
   
-- name: print docker network interface address
+- name: set_fact | private network interface addr
+  set_fact:
+    docker_private_interface: 
+    shell: "ip -o -4 addr show dev eth0 | sed 's/.* inet \([^/]*\).*/\1/'"
+
+- name: print docker public network interface address
   debug:
-      msg: "{{ docker_interface }}"
+      msg: "{{ docker_public_interface }}"
+
+- name: print docker private network interface address
+  debug:
+      msg: "{{ docker_private_interface }}"
 
 - name: Setting hostname 
   command: hostnamectl set-hostname docker
@@ -70,11 +79,7 @@
     - "../../app/*"
 
 - name: build container image
-  docker_image:
-    name: app
-    build:
-      path: /home/{{ docker_user }}/
-    source: build
+  shell: "docker build -t webapp ."
 
 - name: run a container
-  shell: "docker run --rm -d -p 8080:80 --add-host docker:hostvars[groups['dockers'][0]]['ansible_host'] --name webapp app"
+  shell: "docker run --rm -d -p 5000:80 --add-host {{ docker_public_interface }}:{{ docker_private_interface }} --name webapp webapp"

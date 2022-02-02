@@ -6,4 +6,4 @@ COPY web.py .
 COPY web.conf /srv/app/conf/
 WORKDIR /srv/app
 CMD ["python3", "web.py"]
-EXPOSE 8080
+EXPOSE 5000

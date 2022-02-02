@@ -1,0 +1,6 @@
+[databases]
+database ansible_host=18.233.106.180
+
+[dockers]
+docker0 ansible_host=52.1.191.218
+
