@@ -1,10 +1,9 @@
 FROM python:3.8-slim
 
-COPY requirements.txt requirements.txt
-RUN python3 -m pip install --upgrade pip && pip3 install -r requirements.txt
+RUN python3 -m pip install --upgrade pip && pip3 install configparser && pip3 install psycopg2-binary && pip3 install flask
 WORKDIR /srv/app
 COPY web.py .
-WORKDIR /srv/app/conf
-COPY web.conf .
+COPY web.conf /srv/app/conf/
 WORKDIR /srv/app
 CMD ["python3", "web.py"]
+EXPOSE 8080

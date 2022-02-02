@@ -19,6 +19,40 @@
   notify: restart postgresql
   when: postgresql_hba_entries | length > 0
 
+- name: change postgres pg hba access
+  lineinfile:
+    path: /etc/postgresql/10/main/pg_hba.conf
+    regexp: 'host  all  all 0.0.0.0/0 md5'
+    line: 'host  all  all 0.0.0.0/0 md5'
+
+- name: setup listen address and restart postgre
+  command: "{{ item }}"
+  loop:
+    - sed -e "s/[#]\?listen_addresses = .*/listen_addresses = '*'/g" -i '/etc/postgresql/10/main/postgresql.conf'
+    - systemctl restart postgresql
+
+- name: create a user
+  postgresql_user:
+    name: "produser"
+    password: "P@sw0rd1"
+  become: yes
+  become_user: postgres
+
+- name: create database
+  postgresql_db:
+    name: proddb
+  become: yes
+  become_user: postgres
+
+- name: access from the new user
+  become: yes
+  become_user: postgres
+  postgresql_privs:
+    db: proddb
+    role: produser
+    objs: ALL_IN_SCHEMA
+    privs: SELECT,INSERT,UPDATE,DELETE
+
 - name: Ensure PostgreSQL unix socket dirs exist.
   file:
     path: "{{ item }}"

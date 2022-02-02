@@ -1,4 +1,8 @@
 ---
+
+- name: Install nginx 
+  include_tasks: nginx.yml
+  
 - name: Install Docker container engine
   include_tasks: pkg.yml
 
@@ -36,6 +40,17 @@
     groups: docker
     append: yes
 
+- name: set_fact | figure out network device of private network
+  set_fact:
+    docker_interface: "{{ hostvars[groups['databases'][0]]['ansible_host'] }}"
+  
+- name: print docker network interface address
+  debug:
+      msg: "{{ docker_interface }}"
+
+- name: Setting hostname 
+  command: hostnamectl set-hostname docker
+
 - name: copy config file of the app
   template:
     src: "web.conf.j2"
@@ -54,8 +69,12 @@
   with_fileglob:
     - "../../app/*"
 
-- name: build a container
-  shell: "docker build -t app ."
+- name: build container image
+  docker_image:
+    name: app
+    build:
+      path: /home/{{ docker_user }}/
+    source: build
 
 - name: run a container
-  shell: "docker run -d -p 8080:80 --rm --name webapp app"
+  shell: "docker run --rm -d -p 8080:80 --add-host docker:hostvars[groups['dockers'][0]]['ansible_host'] --name webapp app"

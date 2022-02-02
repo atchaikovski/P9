@@ -1,0 +1,22 @@
+---
+
+- name: Install Nginx Web Server
+  when: ansible_os_family == "Debian"
+  apt:
+    name=nginx
+    state=latest
+  
+- name: copy nginx.conf in place
+  template:
+    src: nginx.conf.j2
+    dest: "/etc/nginx"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: start nginx
+  systemd:
+    name: nginx
+    enabled: yes
+    state: started
+
